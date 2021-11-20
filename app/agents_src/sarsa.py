@@ -5,20 +5,23 @@ import gym
 from gym import spaces
 from app import logger as lg
 from typing import Type
-from app.agents.base import BaseQTableMethod
+from app.agents_src.base import BaseQTableMethod
 from tqdm import tqdm
 
 
-class Q_learning(BaseQTableMethod):
+class SARSA(BaseQTableMethod):
     """
     The Q-learning algorithm as a class
+
+    Args:
+        BaseQTableMethod (Class): Base Class for Q-table methods
     """
 
     def __init__(
         self, env: gym.Env, learning_rate: float = 1e-3, discount_factor: float = 0.99
     ):
         super().__init__(env, learning_rate, discount_factor)
-        self.name = "Q-learning"
+        self.name = "SARSA"
 
     def update(
         self,
@@ -55,12 +58,12 @@ class Q_learning(BaseQTableMethod):
             discount_factor = params["discount_factor"]
         new_value = self.q_table[state, action] + learning_rate * (
             reward
-            + discount_factor * max(self.q_table[next_state])
+            + discount_factor * self.q_table[next_state, next_action]
             - self.q_table[state, action]
         )
         if verbose:
             lg.info(
-                f"old q-value {self.q_table[state, action]}, new q_value {new_value}"
+                f"old q-value {self.q_table[state, action]}, new q-value {new_value}"
             )
         return new_value
 
@@ -80,11 +83,14 @@ class Q_learning(BaseQTableMethod):
             state = self.env.reset()
             done = False
             reward_episode = []
+            action = self.select_action(
+                self.q_table, state, params, method="epsilon-greedy"
+            )
             while not done:
-                action = self.select_action(
-                    self.q_table, state, params, method="epsilon-greedy"
-                )
                 next_state, reward, done, info = self.env.step(action)
+                next_action = self.select_action(
+                    self.q_table, next_state, params, method="epsilon-greedy"
+                )
                 if verbose:
                     lg.debug(
                         f"{episode=} : {state=}, {action=}, {next_state=}, {reward=}"
@@ -94,9 +100,11 @@ class Q_learning(BaseQTableMethod):
                     state,
                     reward,
                     next_state,
+                    next_action,
                     params=params,
                 )
                 state = next_state
+                action = next_action
                 reward_episode.append(reward)
             reward_training.append(reward_episode)
         result_dict = {"Training rewards": reward_training}
@@ -106,10 +114,11 @@ class Q_learning(BaseQTableMethod):
         self,
         env: gym.Env,
         state: int,
+        action: int = None,
         q_table: np.array = None,
         mode: str = "test",
         params: dict = {},
-    ):
+    ) -> dict:
         """
         Perform a single step of train or test of the agent
 
@@ -125,20 +134,33 @@ class Q_learning(BaseQTableMethod):
             ValueError: [Raises error for unimplemented or incorrect modes]
 
         Returns:
-            dict: [Returns a dictionnary containing : next_state, reward, done, info]
+            dict: [Returns a dictionnary containing : next_state, reward, done, info and next_action]
         """
         if gym.Env is None:
             env = self.env
         if q_table is None:
             warning("Q-table is not provided or not valid, had to init a q-table")
             q_table = self.init_q_table()
+
         if mode == "test":
             action = self.select_action(q_table, state, method="greedy")
+            next_state, reward, done, info = self.env.step(action)
+            return {
+                "next_state": next_state,
+                "reward": reward,
+                "done": done,
+                "info": info,
+            }
         elif mode == "train":
-            action = self.select_action(
-                self.q_table, state, params, method="epsilon-greedy"
-            )
+            if action is None:
+                action = self.select_action(
+                    self.q_table, state, params, method="epsilon-greedy"
+                )
             next_state, reward, done, info = env.step(action)
+            next_action = self.select_action(
+                self.q_table, next_state, params, method="epsilon-greedy"
+            )
+
             q_table[state, action] = self.update(
                 action,
                 state,
@@ -146,7 +168,12 @@ class Q_learning(BaseQTableMethod):
                 next_state,
                 params=params,
             )
+            return {
+                "next_state": next_state,
+                "reward": reward,
+                "done": done,
+                "info": info,
+                "action": next_action,
+            }
         else:
             raise ValueError(f"Mode {mode} not yet implemented or is non-existent")
-
-        return self.env.step(action)

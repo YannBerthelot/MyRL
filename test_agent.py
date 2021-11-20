@@ -3,8 +3,8 @@ import unittest
 import gym
 import logging
 import sys
-from app.agents.sarsa import SARSA
-from app.agents.qlearning import Q_learning
+from app.agents import SARSA
+from app.agents import Q_learning
 from app import logger as lg
 from parameterized import parameterized
 import app.config as config
@@ -45,7 +45,7 @@ class TestAgent(unittest.TestCase):
     def test_full_train_test(self, agent_class):
         # No slip
         env = gym.make("FrozenLake-v1", is_slippery=False)
-        Q_Learner = SARSA(env)
+        Q_Learner = agent_class(env)
         lg.info(
             f"Testing {Q_Learner.name} on environment {str(env.env.spec).split('(')[1][:-1]}"
         )
@@ -56,7 +56,7 @@ class TestAgent(unittest.TestCase):
         )
         # Slippery
         env = gym.make("FrozenLake-v1", is_slippery=True)
-        Q_Learner = SARSA(env)
+        Q_Learner = agent_class(env)
         params = {"learning_rate": 0.1, "epsilon": 0.05, "discount factor": 0.999}
         Q_Learner.train(n_episode=20000, params=params, verbose=False)
         agent_conf = f"{Q_Learner.name} {str(env.env.spec).split('(')[1][:-1]} {params}"
