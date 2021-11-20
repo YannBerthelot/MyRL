@@ -1,3 +1,4 @@
+from logging import warning
 from typing import Type
 import numpy as np
 import gym
@@ -6,7 +7,7 @@ from app import logger as lg
 from typing import Type
 
 
-class Q_learning:
+class BaseQTableMethod:
     """
     The Q-learning algorithm as a class
     """
@@ -54,20 +55,7 @@ class Q_learning:
         """
         Compute the q table update based on the current state, the previous action, the next state and action
         """
-        if "learning_rate" in params.keys():
-            learning_rate = params["learning_rate"]
-        if "discount_factor" in params.keys():
-            discount_factor = params["discount_factor"]
-        new_value = self.q_table[state, action] + learning_rate * (
-            reward
-            + discount_factor * max(self.q_table[next_state])
-            - self.q_table[state, action]
-        )
-        if verbose:
-            lg.info(
-                f"old q-value {self.q_table[state, action]}, new q_value {new_value}"
-            )
-        return new_value
+        raise NotImplementedError
 
     def select_action(
         self,
@@ -113,34 +101,7 @@ class Q_learning:
             raise ValueError(f"Method {method} not yet implemented or is non-existent")
 
     def train(self, params: dict = {}, n_episode: int = 1, verbose=False):
-        if not self.q_table:
-            self.q_table = self.init_q_table()
-        reward_training = []
-        for episode in range(n_episode):
-            state = self.env.reset()
-            done = False
-            reward_episode = []
-            while not done:
-                action = self.select_action(
-                    self.q_table, state, params, method="epsilon-greedy"
-                )
-                next_state, reward, done, info = self.env.step(action)
-                if verbose:
-                    lg.debug(
-                        f"{episode=} : {state=}, {action=}, {next_state=}, {reward=}"
-                    )
-                self.q_table[state, action] = self.update(
-                    action,
-                    state,
-                    reward,
-                    next_state,
-                    params=params,
-                )
-                state = next_state
-                reward_episode.append(reward)
-            reward_training.append(reward_episode)
-        result_dict = {"Training rewards": reward_training}
-        self.result_report(result_dict)
+        raise NotImplementedError
 
     def test(self, n_episode: int = 1, verbose=False) -> dict:
         if self.q_table is None:
@@ -178,3 +139,16 @@ class Q_learning:
         return {
             "success_rate": num_successful_episodes * 100 / len(reward_sum_per_episode)
         }
+
+    def step_model(
+        self,
+        env: gym.Env,
+        state: int,
+        q_table: np.array = None,
+        mode: str = "test",
+        params: dict = {},
+    ):
+        """
+        Performs a single step of test or train and returns obs, reward, info, and done
+        """
+        raise NotImplementedError
