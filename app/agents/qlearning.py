@@ -32,6 +32,20 @@ class Q_learning(BaseQTableMethod):
     ) -> float:
         """
         Compute the q table update based on the current state, the previous action, the next state and action
+
+        Args:
+            action (int): [The agent's action]
+            state (int): [The previous state of the environment]
+            reward (float): [The reward given by the environment]
+            next_state (int): [The new state after the agent's action has been considered]
+            next_action (int, optional): [The action taken by the agent given the next step, required in SARSA, unused in Q-learning]. Defaults to None.
+            params (dict, optional): [Training parameters for the update : learning rate, discount factor, epsilon for epsilon greedy]. Defaults to {}.
+            learning_rate (float, optional): [Learning rate for this update, will be overwritten by params if it includes learning rate]. Defaults to 1e-3.
+            discount_factor (float, optional): [Discount factor for this update, will be overwritten by params if it includes discount factor]. Defaults to 0.9.
+            verbose (bool, optional): [Wether or not to log training info]. Defaults to False.
+
+        Returns:
+            float: [description]
         """
         if "learning_rate" in params.keys():
             learning_rate = params["learning_rate"]
@@ -49,6 +63,14 @@ class Q_learning(BaseQTableMethod):
         return new_value
 
     def train(self, params: dict = {}, n_episode: int = 1, verbose=False):
+        """
+        Train the selected agent on the current environment
+
+        Args:
+            params (dict, optional): [Training parameters : learning rate, discount_factor, epsilon for epsilon greedy]. Defaults to {}.
+            n_episode (int, optional): [Number of epiodes to train on]. Defaults to 1.
+            verbose (bool, optional): [Wether to log training info or not]. Defaults to False.
+        """
         if not self.q_table:
             self.q_table = self.init_q_table()
         reward_training = []
@@ -87,7 +109,21 @@ class Q_learning(BaseQTableMethod):
         params: dict = {},
     ):
         """
-        Performs a single step of test or train and returns obs, reward, info, and done
+        Perform a single step of train or test of the agent
+
+        Args:
+            env (gym.Env): [The gym environment to make a step on, if None is provided it will take the current defined gym env]
+            state (int): [The current state of the environment]
+            action (int, optional): [The previous action, for SARSA]. Defaults to None.
+            q_table (np.array, optional): [The current Q-table, if None is provided it will be initialized]. Defaults to None.
+            mode (str, optional): [Wether to test or train]. Defaults to "test".
+            params (dict, optional): [Training parameters : learning rate, discount_factor, epsilon for epsilon greedy]. Defaults to {}.
+
+        Raises:
+            ValueError: [Raises error for unimplemented or incorrect modes]
+
+        Returns:
+            dict: [Returns a dictionnary containing : next_state, reward, done, info]
         """
         if gym.Env is None:
             env = self.env

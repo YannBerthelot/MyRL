@@ -80,7 +80,22 @@ class BaseQTableMethod:
         epsilon: float = 0.99,
     ) -> int:
         """
-        Select the action for a specific state and a specific method given the current Q-table
+        Selects the next action given the current Q-table and method
+
+        Args:
+            q_table (np.array): [Current version of the Q-Table]
+            state (int): [The state the agent is in]
+            params (dict, optional): [Action selection params : epsilon for epsilon-greedy]. Defaults to {}.
+            method (str, optional): [Action selection methods among "greedy" and "epsilon-greedy"]. Defaults to "epsilon-greedy".
+            epsilon (float, optional): [Epsilon parameter for epsilon-greedy method]. Defaults to 0.99.
+
+        Raises:
+            ValueError: [Raises an error if the method is invalid]
+            NotImplementedError: [Raises an error if the method is not yet implemented]
+
+
+        Returns:
+            int: [The action selected]
         """
         assert q_table.shape == self.dim
         state_action_values = q_table[state]
@@ -111,13 +126,39 @@ class BaseQTableMethod:
             # if len(max_value_actions) > 1:
             #     lg.info(f"{state=}{max_value_actions}{action}")
             return action
+        elif method == "Boltzmann":
+            raise NotImplementedError
         else:
             raise ValueError(f"Method {method} not yet implemented or is non-existent")
 
     def train(self, params: dict = {}, n_episode: int = 1, verbose=False):
+        """
+        Train the selected agent on the current environment
+
+        Args:
+            params (dict, optional): [Training parameters : learning rate, discount_factor, epsilon for epsilon greedy]. Defaults to {}.
+            n_episode (int, optional): [Number of epiodes to train on]. Defaults to 1.
+            verbose (bool, optional): [Wether to log training info or not]. Defaults to False.
+
+        Raises:
+            NotImplementedError: [Error if the train function is not customized in the children class]
+        """
         raise NotImplementedError
 
     def test(self, n_episode: int = 1, verbose=False) -> dict:
+        """
+        Test the agent's performance
+
+        Args:
+            n_episode (int, optional): [Number of episodes to train the agent on]. Defaults to 1.
+            verbose (bool, optional): [Wether or not to log testing info or not]. Defaults to False.
+
+        Raises:
+            ValueError: [Raise an error if there is no valid q-table]
+
+        Returns:
+            dict: [Returns the performance report as a dictionnary]
+        """
         if self.q_table is None:
             raise ValueError("Test called without a valid q-table")
         reward_training = []
@@ -139,6 +180,16 @@ class BaseQTableMethod:
         return self.result_report(result_dict)
 
     def result_report(self, result_dict: dict, verbose: bool = False) -> dict:
+        """
+        Outputs a report on the results to measure agent's performance
+
+        Args:
+            result_dict (dict): [Dictionnary containing KPI's on the agent's performance]
+            verbose (bool, optional): [Wether or not to print performance during training]. Defaults to False.
+
+        Returns:
+            dict: [description]
+        """
         score_threshold = 1
         reward_sum_per_episode = np.array(
             [np.sum(episode) for episode in result_dict["Training rewards"]]
@@ -163,6 +214,20 @@ class BaseQTableMethod:
         params: dict = {},
     ):
         """
-        Performs a single step of test or train and returns obs, reward, info, and done
+        Perform a single step of train or test of the agent
+
+        Args:
+            env (gym.Env): [The gym environment to make a step on, if None is provided it will take the current defined gym env]
+            state (int): [The current state of the environment]
+            action (int, optional): [The previous action, for SARSA]. Defaults to None.
+            q_table (np.array, optional): [The current Q-table, if None is provided it will be initialized]. Defaults to None.
+            mode (str, optional): [Wether to test or train]. Defaults to "test".
+            params (dict, optional): [Training parameters : learning rate, discount_factor, epsilon for epsilon greedy]. Defaults to {}.
+
+        Raises:
+            ValueError: [Raises error for unimplemented or incorrect modes]
+
+        Returns:
+            dict: [Returns a dictionnary containing : next_state, reward, done, info]
         """
         raise NotImplementedError
