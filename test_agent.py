@@ -3,8 +3,7 @@ import unittest
 import gym
 import logging
 import sys
-from app.agents import SARSA
-from app.agents import Q_learning
+from app.agents import SARSA, Q_learning, Double_Q_learning
 from app import logger as lg
 from parameterized import parameterized
 import app.config as config
@@ -41,7 +40,7 @@ class TestAgent(unittest.TestCase):
         Q_Learner.train()
         Q_Learner.test()
 
-    @parameterized.expand([[SARSA], [Q_learning]])
+    @parameterized.expand([[SARSA], [Q_learning], [Double_Q_learning]])
     def test_full_train_test(self, agent_class):
         # No slip
         env = gym.make("FrozenLake-v1", is_slippery=False)
