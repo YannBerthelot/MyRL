@@ -54,6 +54,20 @@ class BaseQTableMethod:
     ) -> float:
         """
         Compute the q table update based on the current state, the previous action, the next state and action
+
+        Args:
+            action (int): [The agent's action]
+            state (int): [The previous state of the environment]
+            reward (float): [The reward given by the environment]
+            next_state (int): [The new state after the agent's action has been considered]
+            next_action (int, optional): [The action taken by the agent given the next step, required in SARSA, unused in Q-learning]. Defaults to None.
+            params (dict, optional): [Training parameters for the update : learning rate, discount factor, epsilon for epsilon greedy]. Defaults to {}.
+            learning_rate (float, optional): [Learning rate for this update, will be overwritten by params if it includes learning rate]. Defaults to 1e-3.
+            discount_factor (float, optional): [Discount factor for this update, will be overwritten by params if it includes discount factor]. Defaults to 0.9.
+            verbose (bool, optional): [Wether or not to log training info]. Defaults to False.
+
+        Returns:
+            float: [description]
         """
         raise NotImplementedError
 
