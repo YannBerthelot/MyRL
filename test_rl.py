@@ -3,7 +3,7 @@ import unittest
 import gym
 import logging
 import sys
-from app.rl import Q_learning
+from app.agents.qlearning import Q_learning
 from app import logger
 
 logger.level = logging.DEBUG
