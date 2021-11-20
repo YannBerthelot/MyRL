@@ -6,6 +6,7 @@ from gym import spaces
 from app import logger as lg
 from typing import Type
 from app.agents.base import BaseQTableMethod
+from tqdm import tqdm
 
 
 class SARSA(BaseQTableMethod):
@@ -20,6 +21,7 @@ class SARSA(BaseQTableMethod):
         self, env: gym.Env, learning_rate: float = 1e-3, discount_factor: float = 0.99
     ):
         super().__init__(env, learning_rate, discount_factor)
+        self.name = "SARSA"
 
     def update(
         self,
@@ -77,7 +79,7 @@ class SARSA(BaseQTableMethod):
         if not self.q_table:
             self.q_table = self.init_q_table()
         reward_training = []
-        for episode in range(n_episode):
+        for episode in tqdm(range(n_episode)):
             state = self.env.reset()
             done = False
             reward_episode = []

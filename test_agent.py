@@ -7,6 +7,7 @@ from app.agents.sarsa import SARSA
 from app.agents.qlearning import Q_learning
 from app import logger as lg
 from parameterized import parameterized
+import app.config as config
 
 lg.level = logging.DEBUG
 stream_handler = logging.StreamHandler(sys.stdout)
@@ -44,8 +45,10 @@ class TestAgent(unittest.TestCase):
     def test_full_train_test(self, agent_class):
         # No slip
         env = gym.make("FrozenLake-v1", is_slippery=False)
-        lg.info(f"Testing {agent_class} on environment {env}")
         Q_Learner = SARSA(env)
+        lg.info(
+            f"Testing {Q_Learner.name} on environment {str(env.env.spec).split('(')[1][:-1]}"
+        )
         params = {"learning_rate": 0.1, "epsilon": 0.05, "discount factor": 0.999}
         Q_Learner.train(n_episode=1000, params=params, verbose=False)
         self.assertEqual(
@@ -56,8 +59,12 @@ class TestAgent(unittest.TestCase):
         Q_Learner = SARSA(env)
         params = {"learning_rate": 0.1, "epsilon": 0.05, "discount factor": 0.999}
         Q_Learner.train(n_episode=20000, params=params, verbose=False)
+        agent_conf = f"{Q_Learner.name} {str(env.env.spec).split('(')[1][:-1]} {params}"
         self.assertGreaterEqual(
-            Q_Learner.test(n_episode=2000, verbose=False)["success_rate"], 0.5
+            Q_Learner.test(n_episode=2000, verbose=False, agent_conf=agent_conf)[
+                "success_rate"
+            ],
+            0.5,
         )
 
 

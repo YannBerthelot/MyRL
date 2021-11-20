@@ -5,6 +5,7 @@ import gym
 from gym import spaces
 from app import logger as lg
 from typing import Type
+import app.config as config
 
 
 class BaseQTableMethod:
@@ -145,7 +146,7 @@ class BaseQTableMethod:
         """
         raise NotImplementedError
 
-    def test(self, n_episode: int = 1, verbose=False) -> dict:
+    def test(self, n_episode: int = 1, verbose=False, agent_conf: str = "") -> dict:
         """
         Test the agent's performance
 
@@ -177,9 +178,13 @@ class BaseQTableMethod:
                 reward_episode.append(reward)
             reward_training.append(reward_episode)
         result_dict = {"Training rewards": reward_training}
-        return self.result_report(result_dict)
+        return self.result_report(
+            result_dict, config.SHOW_REPORT, agent_conf=agent_conf
+        )
 
-    def result_report(self, result_dict: dict, verbose: bool = False) -> dict:
+    def result_report(
+        self, result_dict: dict, verbose: bool = False, agent_conf: str = ""
+    ) -> dict:
         """
         Outputs a report on the results to measure agent's performance
 
@@ -199,7 +204,7 @@ class BaseQTableMethod:
         )
         if verbose:
             lg.info(
-                f"{num_successful_episodes=}/{len(reward_sum_per_episode)} ({num_successful_episodes*100/len(reward_sum_per_episode)})%"
+                f"{agent_conf} {num_successful_episodes=}/{len(reward_sum_per_episode)} ({num_successful_episodes*100/len(reward_sum_per_episode)})%"
             )
         return {
             "success_rate": num_successful_episodes * 100 / len(reward_sum_per_episode)
