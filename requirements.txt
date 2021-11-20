@@ -1,0 +1,6 @@
+cloudpickle==2.0.0; python_version >= "3.6"
+colorama==0.4.4; python_version >= "2.7" and python_full_version < "3.0.0" and platform_system == "Windows" or python_full_version >= "3.5.0" and platform_system == "Windows"
+gym==0.21.0; python_version >= "3.6"
+numpy==1.21.4; python_version >= "3.7" and python_version < "3.11"
+parameterized==0.8.1
+tqdm==4.62.3; (python_version >= "2.7" and python_full_version < "3.0.0") or (python_full_version >= "3.4.0")
