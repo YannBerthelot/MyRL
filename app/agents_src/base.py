@@ -127,7 +127,7 @@ class BaseQTableMethod:
             # if len(max_value_actions) > 1:
             #     lg.info(f"{state=}{max_value_actions}{action}")
             return action
-        elif method == "Boltzmann":
+        elif method == "softmax":
             raise NotImplementedError
         else:
             raise ValueError(f"Method {method} not yet implemented or is non-existent")
