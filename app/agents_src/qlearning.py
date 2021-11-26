@@ -5,11 +5,11 @@ import gym
 from gym import spaces
 from app import logger as lg
 from typing import Type
-from app.agents_src.base import BaseQTableMethod
+from app.agents_src.base import BaseQTable
 from tqdm import tqdm
 
 
-class Q_learning(BaseQTableMethod):
+class Q_learning(BaseQTable):
     """
     The Q-learning algorithm as a class
     """

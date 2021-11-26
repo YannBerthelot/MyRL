@@ -7,3 +7,8 @@ The agents currently implemented are :
 -SARSA : On-policy Q-table method
 -Q-learning : Off-policy Q-table method
 -Double Q-learning : Variance improved Q-learning
+
+To-do:
+Improve benchmark to compare variance between agents
+Add model based methods
+Add dynaQ
