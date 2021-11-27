@@ -132,4 +132,10 @@ dmypy.json
 poetry.lock
 
 #Folders
-reports
+reports/*
+
+#png
+*.png
+
+#DS_Store
+.DS_Store
