@@ -14,6 +14,8 @@ lg.addHandler(stream_handler)
 
 env = gym.make("FrozenLake-v1", is_slippery=True)
 
+N_TEST = 10
+
 
 class TestAgent(unittest.TestCase):
     def test_init_q_table(self):
@@ -40,7 +42,7 @@ class TestAgent(unittest.TestCase):
         Q_Learner.train()
         Q_Learner.test()
 
-    @parameterized.expand([[DynaQ], [SARSA], [Q_learning], [Double_Q_learning]])
+    @parameterized.expand([[DynaQ]])  # , [SARSA], [Q_learning], [Double_Q_learning]])
     def test_full_train_test(self, agent_class):
         # No slip
         env = gym.make("FrozenLake-v1", is_slippery=False)
@@ -56,17 +58,27 @@ class TestAgent(unittest.TestCase):
         )
         # Slippery
         lg.info("Slippery")
-        env = gym.make("FrozenLake-v1", is_slippery=True)
-        Q_Learner = agent_class(env)
-        params = {"learning_rate": 0.05, "epsilon": 0.05, "discount factor": 0.999}
-        Q_Learner.train(n_episode=10000, params=params, verbose=False)
-        agent_conf = f"{Q_Learner.name} {str(env.env.spec).split('(')[1][:-1]} {params}"
-        self.assertGreaterEqual(
-            Q_Learner.test(n_episode=1000, verbose=False, agent_conf=agent_conf,export=True)[
-                "success_rate"
-            ],
-            0.5,
-        )
+        is_slippery = True
+        env = gym.make("FrozenLake-v1", is_slippery=is_slippery)
+
+        env_name = str(env.env.spec).split("(")[1][:-1]
+        for i in range(N_TEST):
+            Q_Learner = agent_class(env)
+            params = {"learning_rate": 0.05, "epsilon": 0.05, "discount factor": 0.999}
+            agent_conf = {
+                "agent": Q_Learner.name,
+                "env": env_name,
+                "env_params": {"slippery": is_slippery},
+                "params": params,
+                "i": i,
+            }
+            Q_Learner.train(n_episode=10000, params=params, verbose=False)
+            self.assertGreaterEqual(
+                Q_Learner.test(
+                    n_episode=1000, verbose=False, agent_conf=agent_conf, export=True
+                )["success_rate"],
+                0.5,
+            )
 
 
 if __name__ == "__main__":

@@ -224,7 +224,14 @@ class BaseQTable:
         }
         if export:
             os.makedirs("reports", exist_ok=True)
-            with open(f"reports/report_{agent_conf}.json", "w") as json_file:
+            os.makedirs(f"reports/{agent_conf['env']}", exist_ok=True)
+            os.makedirs(
+                f"reports/{agent_conf['env']}/{agent_conf['agent']}", exist_ok=True
+            )
+            with open(
+                f"reports/{agent_conf['env']}/{agent_conf['agent']}/{agent_conf}.json",
+                "w",
+            ) as json_file:
                 json.dump(report, json_file)
 
         return {

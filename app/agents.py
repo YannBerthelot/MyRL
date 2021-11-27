@@ -33,7 +33,7 @@ class Double_Q_learning(Double_Q_learning):
         self, env: gym.Env, learning_rate: float = 1e-3, discount_factor: float = 0.99
     ):
         super().__init__(env, learning_rate, discount_factor)
-        self.name = "Double Q-learning"
+        self.name = "Double-Q-learning"
 
 
 class SARSA(SARSA):
