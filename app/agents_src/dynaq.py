@@ -9,16 +9,19 @@ from app.agents_src.base import BaseQTable
 from tqdm import tqdm
 
 
-class Q_learning(BaseQTable):
+class DynaQ(BaseQTable):
     """
-    The Q-learning algorithm as a class
+    The DynaQ algorithm as a class
     """
 
     def __init__(
         self, env: gym.Env, learning_rate: float = 1e-3, discount_factor: float = 0.99
     ):
         super().__init__(env, learning_rate, discount_factor)
-        self.name = "Q-learning"
+        self.name = "DynaQ"
+        # initialize model
+        self.model = {}
+        self.n_forecast_steps = 10
 
     def update(
         self,
@@ -75,6 +78,8 @@ class Q_learning(BaseQTable):
         """
         if not self.q_table:
             self.q_table = self.init_q_table()
+        if "n_forecast_steps" in params.keys():
+            self.n_forecast_steps = params["n_forecast_steps"]
         reward_training = []
         for episode in tqdm(range(n_episode)):
             state = self.env.reset()
@@ -85,6 +90,7 @@ class Q_learning(BaseQTable):
                     self.q_table, state, params, method="epsilon-greedy"
                 )
                 next_state, reward, done, info = self.env.step(action)
+                reward_episode.append(reward)
                 if verbose:
                     lg.debug(
                         f"{episode=} : {state=}, {action=}, {next_state=}, {reward=}"
@@ -96,10 +102,32 @@ class Q_learning(BaseQTable):
                     next_state,
                     params=params,
                 )
+                if state not in self.model.keys():
+                    self.model[state] = {}
+                self.model[state][action] = {"reward": reward, "next_state": next_state}
+                for step in range(self.n_forecast_steps):
+                    state_model = np.random.choice(list(self.model.keys()))
+                    action_model = np.random.choice(
+                        list(self.model[state_model].keys())
+                    )
+                    reward_model = self.model[state_model][action_model]["reward"]
+                    next_state_model = self.model[state_model][action_model][
+                        "next_state"
+                    ]
+                    self.q_table[state_model, action_model] = self.update(
+                        action_model,
+                        state_model,
+                        reward_model,
+                        next_state_model,
+                        params=params,
+                    )
+
                 state = next_state
-                reward_episode.append(reward)
+
             reward_training.append(reward_episode)
-        result_dict = {"Training rewards": reward_training}
+        result_dict = {
+            "Training rewards": reward_training,
+        }
         self.result_report(result_dict)
 
     def step_model(

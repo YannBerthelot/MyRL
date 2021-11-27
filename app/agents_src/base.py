@@ -8,9 +8,9 @@ from typing import Type
 import app.config as config
 
 
-class BaseQTableMethod:
+class BaseQTable:
     """
-    The Q-learning algorithm as a class
+    Base Class for Q-table algorithms
     """
 
     def __init__(
