@@ -3,7 +3,7 @@ import unittest
 import gym
 import logging
 import sys
-from app.agents import SARSA, Q_learning, Double_Q_learning
+from app.agents import SARSA, Q_learning, Double_Q_learning, DynaQ
 from app import logger as lg
 from parameterized import parameterized
 import app.config as config
@@ -40,7 +40,7 @@ class TestAgent(unittest.TestCase):
         Q_Learner.train()
         Q_Learner.test()
 
-    @parameterized.expand([[SARSA], [Q_learning], [Double_Q_learning]])
+    @parameterized.expand([[DynaQ], [SARSA], [Q_learning], [Double_Q_learning]])
     def test_full_train_test(self, agent_class):
         # No slip
         env = gym.make("FrozenLake-v1", is_slippery=False)
@@ -48,19 +48,21 @@ class TestAgent(unittest.TestCase):
         lg.info(
             f"Testing {Q_Learner.name} on environment {str(env.env.spec).split('(')[1][:-1]}"
         )
+        lg.info("No slippery")
         params = {"learning_rate": 0.1, "epsilon": 0.05, "discount factor": 0.999}
         Q_Learner.train(n_episode=1000, params=params, verbose=False)
         self.assertEqual(
             Q_Learner.test(n_episode=1, verbose=False)["success_rate"], 100.0
         )
         # Slippery
+        lg.info("Slippery")
         env = gym.make("FrozenLake-v1", is_slippery=True)
         Q_Learner = agent_class(env)
-        params = {"learning_rate": 0.1, "epsilon": 0.05, "discount factor": 0.999}
-        Q_Learner.train(n_episode=20000, params=params, verbose=False)
+        params = {"learning_rate": 0.05, "epsilon": 0.05, "discount factor": 0.999}
+        Q_Learner.train(n_episode=10000, params=params, verbose=False)
         agent_conf = f"{Q_Learner.name} {str(env.env.spec).split('(')[1][:-1]} {params}"
         self.assertGreaterEqual(
-            Q_Learner.test(n_episode=2000, verbose=False, agent_conf=agent_conf)[
+            Q_Learner.test(n_episode=1000, verbose=False, agent_conf=agent_conf,export=True)[
                 "success_rate"
             ],
             0.5,
