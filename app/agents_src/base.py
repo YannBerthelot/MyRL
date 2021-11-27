@@ -1,6 +1,8 @@
 from logging import warning
 from typing import Type
 import numpy as np
+import os
+import json
 import gym
 from gym import spaces
 from app import logger as lg
@@ -146,7 +148,13 @@ class BaseQTable:
         """
         raise NotImplementedError
 
-    def test(self, n_episode: int = 1, verbose=False, agent_conf: str = "") -> dict:
+    def test(
+        self,
+        n_episode: int = 1,
+        verbose=False,
+        agent_conf: str = "",
+        export: bool = False,
+    ) -> dict:
         """
         Test the agent's performance
 
@@ -179,11 +187,15 @@ class BaseQTable:
             reward_training.append(reward_episode)
         result_dict = {"Training rewards": reward_training}
         return self.result_report(
-            result_dict, config.SHOW_REPORT, agent_conf=agent_conf
+            result_dict, config.SHOW_REPORT, agent_conf=agent_conf, export=export
         )
 
     def result_report(
-        self, result_dict: dict, verbose: bool = False, agent_conf: str = ""
+        self,
+        result_dict: dict,
+        verbose: bool = False,
+        agent_conf: str = "",
+        export: bool = False,
     ) -> dict:
         """
         Outputs a report on the results to measure agent's performance
@@ -204,10 +216,19 @@ class BaseQTable:
         )
         if verbose:
             lg.info(
-                f"{agent_conf} {num_successful_episodes=}/{len(reward_sum_per_episode)} ({num_successful_episodes*100/len(reward_sum_per_episode)})%"
+                f"{agent_conf} {num_successful_episodes=}/{len(reward_sum_per_episode)} ({num_successful_episodes*100/len(reward_sum_per_episode)})%, total reward : {np.sum(np.sum(result_dict['Training rewards']))}"
             )
+        report = {
+            "success_rate": num_successful_episodes * 100 / len(reward_sum_per_episode),
+            "training_rewards": result_dict["Training rewards"],
+        }
+        if export:
+            os.makedirs("reports", exist_ok=True)
+            with open(f"reports/report_{agent_conf}.json", "w") as json_file:
+                json.dump(report, json_file)
+
         return {
-            "success_rate": num_successful_episodes * 100 / len(reward_sum_per_episode)
+            "success_rate": num_successful_episodes * 100 / len(reward_sum_per_episode),
         }
 
     def step_model(
